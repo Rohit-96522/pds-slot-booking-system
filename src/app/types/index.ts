@@ -1,6 +1,7 @@
 export type UserRole = 'admin' | 'shopkeeper' | 'beneficiary';
 
 export interface User {
+  _id?: string;
   id: string;
   name: string;
   email: string;
@@ -13,6 +14,7 @@ export interface User {
 }
 
 export interface Shop {
+  _id?: string;
   id: string;
   name: string;
   address: string;
@@ -20,11 +22,11 @@ export interface Shop {
   shopkeeperId: string;
   status: 'pending' | 'approved' | 'rejected';
   totalStock: number;
-  location: {
+  location?: {
     lat: number;
     lng: number;
   };
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface Stock {
@@ -35,6 +37,7 @@ export interface Stock {
 }
 
 export interface Slot {
+  _id?: string;
   id: string;
   shopId: string;
   date: string;
@@ -46,6 +49,7 @@ export interface Slot {
 }
 
 export interface Booking {
+  _id?: string;
   id: string;
   beneficiaryId: string;
   beneficiaryName: string;

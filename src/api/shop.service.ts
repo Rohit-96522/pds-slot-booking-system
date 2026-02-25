@@ -12,6 +12,11 @@ export const shopService = {
         return response.data;
     },
 
+    getShopByShopkeeper: async (userId: string) => {
+        const response = await client.get<Shop>(`/shops/by-shopkeeper/${userId}`);
+        return response.data;
+    },
+
     createShop: async (shopData: any) => {
         const response = await client.post<Shop>('/shops', shopData);
         return response.data;

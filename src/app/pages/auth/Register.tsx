@@ -8,8 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { Textarea } from '../../components/ui/textarea';
 import { authService } from '../../../api/auth.service';
-import { shopService } from '../../../api/shop.service';
-import { userService } from '../../../api/user.service';
 import { toast } from 'sonner';
 
 export default function Register() {
@@ -46,46 +44,24 @@ export default function Register() {
         toast.success('Registration successful! Please login.');
         navigate('/login');
       } else {
-        // 1. Register user first to get ID/Token
-        // Note: Ideally, we would want to do this transactionally.
-        // For now, we register, then create shop, then update user.
-
-        const user = await authService.register({
+        // Single API call — backend handles user + shop creation atomically
+        await authService.register({
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
           role: 'shopkeeper',
+          shopName: formData.shopName,
+          shopAddress: formData.shopAddress,
+          shopImage: formData.shopImage,
         });
-
-        // 2. Create shop with user ID
-        const shop = await shopService.createShop({
-          name: formData.shopName,
-          address: formData.shopAddress,
-          image: formData.shopImage || 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400',
-          shopkeeperId: user.id,
-          status: 'pending',
-          totalStock: 0,
-          location: { lat: 28.6139, lng: 77.209 }, // Default location
-        });
-
-        // 3. Update user with shop ID
-        // We might need to login first if these endpoints are protected? 
-        // Assuming register returns token or endpoints are accessible. 
-        // If register returns token, we should set it? 
-        // authService.register usually returns { user, token }. 
-        // Let's assume user object has id.
-
-        if (shop && shop.id) {
-          await userService.updateUser(user.id, { shopId: shop.id });
-        }
-
         toast.success('Registration successful! Your shop is pending approval.');
         navigate('/login');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Registration failed. Please try again.');
+      const message = error?.response?.data?.message || 'Registration failed. Please try again.';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

@@ -1,39 +1,82 @@
-import { useState } from 'react';
-import { Store, Check, X, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Store, Check, X, Eye, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
-import { getShops, updateShop } from '../../utils/storage';
+import { shopService } from '../../../api/shop.service';
 import { Navbar } from '../../components/shared/Navbar';
 import { Sidebar } from '../../components/shared/Sidebar';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { toast } from 'sonner';
+import { Shop } from '../../types';
 
 export default function ShopApproval() {
-  const [shops, setShops] = useState(getShops());
-  const [selectedShop, setSelectedShop] = useState<any>(null);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const handleApprove = (shopId: string) => {
-    updateShop(shopId, { status: 'approved' });
-    setShops(getShops());
-    toast.success('Shop approved successfully!');
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        const data = await shopService.getAllShops();
+        setShops(data);
+      } catch (error) {
+        console.error('Failed to load shops:', error);
+        toast.error('Failed to load shops');
+      }
+      setLoading(false);
+    };
+    fetchShops();
+  }, []);
+
+  const handleApprove = async (shop: Shop) => {
+    const shopId = (shop._id || shop.id)!;
+    setActionLoading(shopId);
+    try {
+      await shopService.updateShop(shopId, { status: 'approved' });
+      setShops((prev) =>
+        prev.map((s) => ((s._id || s.id) === shopId ? { ...s, status: 'approved' } : s))
+      );
+      toast.success(`${shop.name} approved successfully!`);
+    } catch (error) {
+      toast.error('Failed to approve shop');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const handleReject = (shopId: string) => {
-    updateShop(shopId, { status: 'rejected' });
-    setShops(getShops());
-    toast.error('Shop rejected');
-  };
-
-  const viewDetails = (shop: any) => {
-    setSelectedShop(shop);
-    setDialogOpen(true);
+  const handleReject = async (shop: Shop) => {
+    const shopId = (shop._id || shop.id)!;
+    setActionLoading(shopId + '_reject');
+    try {
+      await shopService.updateShop(shopId, { status: 'rejected' });
+      setShops((prev) =>
+        prev.map((s) => ((s._id || s.id) === shopId ? { ...s, status: 'rejected' } : s))
+      );
+      toast.error(`${shop.name} rejected`);
+    } catch (error) {
+      toast.error('Failed to reject shop');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const pendingShops = shops.filter((s) => s.status === 'pending');
   const approvedShops = shops.filter((s) => s.status === 'approved');
   const rejectedShops = shops.filter((s) => s.status === 'rejected');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,12 +86,8 @@ export default function ShopApproval() {
         <main className="flex-1 p-8">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-                Shop Approval Management
-              </h1>
-              <p className="text-gray-600">
-                Review and approve shop registrations
-              </p>
+              <h1 className="text-3xl font-semibold text-gray-900 mb-2">Shop Approval Management</h1>
+              <p className="text-gray-600">Review and approve shop registrations</p>
             </div>
 
             {/* Pending Shops */}
@@ -62,70 +101,55 @@ export default function ShopApproval() {
               <CardContent>
                 {pendingShops.length > 0 ? (
                   <div className="space-y-4">
-                    {pendingShops.map((shop) => (
-                      <div
-                        key={shop.id}
-                        className="border rounded-lg p-4 bg-yellow-50 border-yellow-200"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex gap-4">
-                            {shop.image && (
-                              <img
-                                src={shop.image}
-                                alt={shop.name}
-                                className="w-20 h-20 rounded-lg object-cover"
-                              />
-                            )}
-                            <div>
-                              <h3 className="font-semibold text-lg text-gray-900">
-                                {shop.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {shop.address}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Registered:{' '}
-                                {new Date(shop.createdAt).toLocaleDateString('en-IN')}
-                              </p>
+                    {pendingShops.map((shop) => {
+                      const shopId = (shop._id || shop.id)!;
+                      const isApproving = actionLoading === shopId;
+                      const isRejecting = actionLoading === shopId + '_reject';
+                      return (
+                        <div key={shopId} className="border rounded-lg p-4 bg-yellow-50 border-yellow-200">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex gap-4">
+                              {shop.image && (
+                                <img src={shop.image} alt={shop.name}
+                                  className="w-20 h-20 rounded-lg object-cover" />
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-lg text-gray-900">{shop.name}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{shop.address}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Registered: {shop.createdAt ? new Date(shop.createdAt).toLocaleDateString('en-IN') : 'N/A'}
+                                </p>
+                              </div>
                             </div>
+                            <StatusBadge status={shop.status} />
                           </div>
-                          <StatusBadge status={shop.status} />
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline"
+                              onClick={() => { setSelectedShop(shop); setDialogOpen(true); }}
+                              className="gap-2">
+                              <Eye className="h-4 w-4" /> View Details
+                            </Button>
+                            <Button size="sm"
+                              onClick={() => handleApprove(shop)}
+                              className="gap-2 bg-green-600 hover:bg-green-700"
+                              disabled={isApproving || isRejecting}>
+                              {isApproving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                              Approve
+                            </Button>
+                            <Button size="sm" variant="destructive"
+                              onClick={() => handleReject(shop)}
+                              className="gap-2"
+                              disabled={isApproving || isRejecting}>
+                              {isRejecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                              Reject
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => viewDetails(shop)}
-                            className="gap-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                            View Details
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleApprove(shop.id)}
-                            className="gap-2 bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="h-4 w-4" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleReject(shop.id)}
-                            className="gap-2"
-                          >
-                            <X className="h-4 w-4" />
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-600">
-                    No pending approvals
-                  </div>
+                  <div className="text-center py-8 text-gray-600">No pending approvals</div>
                 )}
               </CardContent>
             </Card>
@@ -138,41 +162,30 @@ export default function ShopApproval() {
               <CardContent>
                 {approvedShops.length > 0 ? (
                   <div className="grid md:grid-cols-2 gap-4">
-                    {approvedShops.map((shop) => (
-                      <div
-                        key={shop.id}
-                        className="border rounded-lg p-4 bg-green-50 border-green-200"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              {shop.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 line-clamp-1 mt-1">
-                              {shop.address}
-                            </p>
+                    {approvedShops.map((shop) => {
+                      const shopId = (shop._id || shop.id)!;
+                      return (
+                        <div key={shopId} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{shop.name}</h3>
+                              <p className="text-sm text-gray-600 line-clamp-1 mt-1">{shop.address}</p>
+                            </div>
+                            <StatusBadge status={shop.status} />
                           </div>
-                          <StatusBadge status={shop.status} />
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-sm text-gray-600">Stock: {shop.totalStock} kg</p>
+                            <Button size="sm" variant="outline"
+                              onClick={() => { setSelectedShop(shop); setDialogOpen(true); }}>
+                              View
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between mt-3">
-                          <p className="text-sm text-gray-600">
-                            Stock: {shop.totalStock} kg
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => viewDetails(shop)}
-                          >
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-600">
-                    No approved shops yet
-                  </div>
+                  <div className="text-center py-8 text-gray-600">No approved shops yet</div>
                 )}
               </CardContent>
             </Card>
@@ -185,20 +198,19 @@ export default function ShopApproval() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {rejectedShops.map((shop) => (
-                      <div
-                        key={shop.id}
-                        className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
-                      >
-                        <div>
-                          <p className="font-medium text-gray-900">{shop.name}</p>
-                          <p className="text-sm text-gray-600 line-clamp-1">
-                            {shop.address}
-                          </p>
+                    {rejectedShops.map((shop) => {
+                      const shopId = (shop._id || shop.id)!;
+                      return (
+                        <div key={shopId}
+                          className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                          <div>
+                            <p className="font-medium text-gray-900">{shop.name}</p>
+                            <p className="text-sm text-gray-600 line-clamp-1">{shop.address}</p>
+                          </div>
+                          <StatusBadge status={shop.status} />
                         </div>
-                        <StatusBadge status={shop.status} />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -216,11 +228,8 @@ export default function ShopApproval() {
           {selectedShop && (
             <div className="space-y-4">
               {selectedShop.image && (
-                <img
-                  src={selectedShop.image}
-                  alt={selectedShop.name}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
+                <img src={selectedShop.image} alt={selectedShop.name}
+                  className="w-full h-48 object-cover rounded-lg" />
               )}
               <div>
                 <p className="text-sm text-gray-600">Shop Name</p>
@@ -237,22 +246,32 @@ export default function ShopApproval() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Stock</p>
-                  <p className="font-medium text-gray-900">
-                    {selectedShop.totalStock} kg
-                  </p>
+                  <p className="font-medium text-gray-900">{selectedShop.totalStock} kg</p>
                 </div>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Registered On</p>
                 <p className="font-medium text-gray-900">
-                  {new Date(selectedShop.createdAt).toLocaleDateString('en-IN', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  {selectedShop.createdAt
+                    ? new Date(selectedShop.createdAt).toLocaleDateString('en-IN', {
+                      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    })
+                    : 'N/A'}
                 </p>
               </div>
+              {selectedShop.status === 'pending' && (
+                <div className="flex gap-3 pt-2 border-t">
+                  <Button onClick={() => { handleApprove(selectedShop); setDialogOpen(false); }}
+                    className="flex-1 bg-green-600 hover:bg-green-700 gap-2">
+                    <Check className="h-4 w-4" /> Approve
+                  </Button>
+                  <Button variant="destructive"
+                    onClick={() => { handleReject(selectedShop); setDialogOpen(false); }}
+                    className="flex-1 gap-2">
+                    <X className="h-4 w-4" /> Reject
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

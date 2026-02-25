@@ -14,6 +14,22 @@ router.get('/', async (req, res) => {
     }
 });
 
+// @desc    Get shop by shopkeeper user ID
+// @route   GET /api/shops/by-shopkeeper/:userId
+// @access  Public
+router.get('/by-shopkeeper/:userId', async (req, res) => {
+    try {
+        const shop = await Shop.findOne({ shopkeeperId: req.params.userId });
+        if (shop) {
+            res.json(shop);
+        } else {
+            res.status(404).json({ message: 'Shop not found for this user' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @desc    Get shop by ID
 // @route   GET /api/shops/:id
 // @access  Public

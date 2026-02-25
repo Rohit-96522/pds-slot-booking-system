@@ -19,20 +19,35 @@ export default function ShopkeeperDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const currentUser = authService.getCurrentUser();
+      if (!currentUser) { setLoading(false); return; }
 
-      if (currentUser?.shopId) {
-        try {
-          const [shopData, bookingsData, slotsData] = await Promise.all([
-            shopService.getShopById(currentUser.shopId),
-            bookingService.getBookingsByShop(currentUser.shopId),
-            slotService.getSlotsByShop(currentUser.shopId)
-          ]);
+      try {
+        let shopData: Shop | null = null;
+
+        // Try by shopId first, then fallback to shopkeeperId lookup
+        if (currentUser.shopId) {
+          shopData = await shopService.getShopById(currentUser.shopId);
+        } else if (currentUser._id) {
+          shopData = await shopService.getShopByShopkeeper(currentUser._id);
+          // Cache the shopId in localStorage so next time is faster
+          if (shopData?._id) {
+            const updated = { ...currentUser, shopId: shopData._id };
+            localStorage.setItem('pds_current_user', JSON.stringify(updated));
+          }
+        }
+
+        if (shopData) {
           setShop(shopData);
+          const shopId = (shopData._id || shopData.id)!;
+          const [bookingsData, slotsData] = await Promise.all([
+            bookingService.getBookingsByShop(shopId),
+            slotService.getSlotsByShop(shopId),
+          ]);
           setBookings(bookingsData);
           setSlots(slotsData);
-        } catch (error) {
-          console.error('Error fetching dashboard data:', error);
         }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
       }
       setLoading(false);
     };

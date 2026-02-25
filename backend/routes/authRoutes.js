@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Shop = require('../models/Shop');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT
@@ -25,6 +26,7 @@ router.post('/login', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                shopId: user.shopId || null,
                 token: generateToken(user._id),
             });
         } else {
@@ -35,42 +37,81 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// @desc    Register a new user
+// @desc    Register a new user (and shop if shopkeeper)
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
-    const { name, email, password, phone, role, shopId, cardNumber, familyMembers } = req.body;
+    const {
+        name, email, password, phone, role,
+        cardNumber, familyMembers,
+        shopName, shopAddress, shopImage
+    } = req.body;
 
     try {
+        // Check if user already exists
         const userExists = await User.findOne({ email });
-
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        // Create the user
         const user = await User.create({
             name,
             email,
             password,
             phone,
             role,
-            shopId,
-            cardNumber,
-            familyMembers,
+            cardNumber: cardNumber || undefined,
+            familyMembers: familyMembers || undefined,
         });
 
-        if (user) {
-            res.status(201).json({
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid user data' });
+        }
+
+        // For shopkeeper: create shop and link it to user — all in one request
+        if (role === 'shopkeeper') {
+            if (!shopName || !shopAddress) {
+                // Rollback user creation if shop data missing
+                await User.findByIdAndDelete(user._id);
+                return res.status(400).json({ message: 'Shop name and address are required for shopkeeper registration' });
+            }
+
+            const shop = await Shop.create({
+                name: shopName,
+                address: shopAddress,
+                image: shopImage || 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400',
+                shopkeeperId: user._id.toString(),
+                status: 'pending',
+                totalStock: 0,
+                location: { lat: 28.6139, lng: 77.209 },
+            });
+
+            // Link shop to user
+            user.shopId = shop._id.toString();
+            await user.save();
+
+            return res.status(201).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                shopId: user.shopId,
                 token: generateToken(user._id),
             });
-        } else {
-            res.status(400).json({ message: 'Invalid user data' });
         }
+
+        // Beneficiary response
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            token: generateToken(user._id),
+        });
+
     } catch (error) {
+        console.error('Registration error:', error);
         res.status(500).json({ message: error.message });
     }
 });
