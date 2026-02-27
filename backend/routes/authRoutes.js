@@ -44,7 +44,9 @@ router.post('/register', async (req, res) => {
     const {
         name, email, password, phone, role,
         cardNumber, familyMembers,
-        shopName, shopAddress, shopImage
+        address, latitude, longitude,
+        shopName, shopAddress, shopImage,
+        shopLat, shopLng
     } = req.body;
 
     try {
@@ -63,6 +65,8 @@ router.post('/register', async (req, res) => {
             role,
             cardNumber: cardNumber || undefined,
             familyMembers: familyMembers || undefined,
+            address: address || undefined,
+            location: (latitude && longitude) ? { lat: latitude, lng: longitude } : undefined,
         });
 
         if (!user) {
@@ -84,7 +88,7 @@ router.post('/register', async (req, res) => {
                 shopkeeperId: user._id.toString(),
                 status: 'pending',
                 totalStock: 0,
-                location: { lat: 28.6139, lng: 77.209 },
+                location: (shopLat && shopLng) ? { lat: shopLat, lng: shopLng } : { lat: 28.6139, lng: 77.209 },
             });
 
             // Link shop to user

@@ -34,6 +34,13 @@ const userSchema = mongoose.Schema({
     familyMembers: {
         type: Number,
     },
+    address: {
+        type: String,
+    },
+    location: {
+        lat: Number,
+        lng: Number,
+    },
 }, {
     timestamps: true,
 });

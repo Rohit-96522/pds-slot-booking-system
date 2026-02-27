@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { Textarea } from '../../components/ui/textarea';
 import { authService } from '../../../api/auth.service';
 import { toast } from 'sonner';
+import LocationPicker from '../../components/LocationPicker';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -21,10 +22,23 @@ export default function Register() {
     password: '',
     cardNumber: '',
     familyMembers: '4',
+    address: '',
+    latitude: 0,
+    longitude: 0,
     shopName: '',
     shopAddress: '',
+    shopLat: 0,
+    shopLng: 0,
     shopImage: '',
   });
+
+  const handleBeneficiaryLocationSelect = (address: string, lat: number, lng: number) => {
+    setFormData((prev) => ({ ...prev, address, latitude: lat, longitude: lng }));
+  };
+
+  const handleShopLocationSelect = (address: string, lat: number, lng: number) => {
+    setFormData((prev) => ({ ...prev, shopAddress: address, shopLat: lat, shopLng: lng }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,11 +54,13 @@ export default function Register() {
           role: 'beneficiary',
           cardNumber: formData.cardNumber,
           familyMembers: parseInt(formData.familyMembers),
+          address: formData.address,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
         });
         toast.success('Registration successful! Please login.');
         navigate('/login');
       } else {
-        // Single API call — backend handles user + shop creation atomically
         await authService.register({
           name: formData.name,
           email: formData.email,
@@ -53,6 +69,8 @@ export default function Register() {
           role: 'shopkeeper',
           shopName: formData.shopName,
           shopAddress: formData.shopAddress,
+          shopLat: formData.shopLat,
+          shopLng: formData.shopLng,
           shopImage: formData.shopImage,
         });
         toast.success('Registration successful! Your shop is pending approval.');
@@ -154,28 +172,45 @@ export default function Register() {
             </div>
 
             {role === 'beneficiary' ? (
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cardNumber">Ration Card Number *</Label>
+                    <Input
+                      id="cardNumber"
+                      placeholder="Enter card number"
+                      value={formData.cardNumber}
+                      onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="familyMembers">Family Members *</Label>
+                    <Input
+                      id="familyMembers"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={formData.familyMembers}
+                      onChange={(e) => setFormData({ ...formData, familyMembers: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Ration Card Number *</Label>
-                  <Input
-                    id="cardNumber"
-                    placeholder="Enter card number"
-                    value={formData.cardNumber}
-                    onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
+                  <Label htmlFor="address">Your Address *</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="Click on the map below to auto-fill your address, or type manually"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     required
+                    rows={2}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="familyMembers">Family Members *</Label>
-                  <Input
-                    id="familyMembers"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={formData.familyMembers}
-                    onChange={(e) => setFormData({ ...formData, familyMembers: e.target.value })}
-                    required
-                  />
+                  <Label>Pin Your Location on Map *</Label>
+                  <LocationPicker onLocationSelect={handleBeneficiaryLocationSelect} />
                 </div>
               </div>
             ) : (
@@ -194,12 +229,16 @@ export default function Register() {
                   <Label htmlFor="shopAddress">Shop Address *</Label>
                   <Textarea
                     id="shopAddress"
-                    placeholder="Complete shop address with pin code"
+                    placeholder="Click on the map below to auto-fill the address, or type manually"
                     value={formData.shopAddress}
                     onChange={(e) => setFormData({ ...formData, shopAddress: e.target.value })}
                     required
-                    rows={3}
+                    rows={2}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pin Shop Location on Map *</Label>
+                  <LocationPicker onLocationSelect={handleShopLocationSelect} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shopImage">Shop Image URL (Optional)</Label>

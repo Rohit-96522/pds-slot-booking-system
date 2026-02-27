@@ -9,6 +9,8 @@ export interface User {
   role: UserRole;
   cardNumber?: string; // For beneficiaries (ration card)
   familyMembers?: number; // For beneficiaries
+  address?: string; // For beneficiaries
+  location?: { lat: number; lng: number }; // Map-pinned location
   shopId?: string; // For shopkeepers
   createdAt: string;
 }
