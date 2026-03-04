@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { Store, Upload, Loader2 } from 'lucide-react';
+import { Store, Upload, Loader2, Info } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -95,8 +95,11 @@ export default function Register() {
             </div>
           </div>
           <CardTitle className="text-2xl">Register for PDS System</CardTitle>
-          <CardDescription>
-            Create your account to access ration booking services
+          <CardDescription className="flex flex-col gap-2">
+            <span>Create your account to access ration booking services</span>
+            <Link to="/register/help" className="text-blue-600 hover:text-blue-800 hover:underline flex items-center justify-center gap-1 text-sm font-medium mt-1">
+              <Info className="h-4 w-4" /> Need help registering? Read our guide
+            </Link>
           </CardDescription>
         </CardHeader>
         <CardContent>

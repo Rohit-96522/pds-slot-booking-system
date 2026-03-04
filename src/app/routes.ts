@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router';
 // Auth
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import BeneficiaryRegistrationHelp from './pages/auth/BeneficiaryRegistrationHelp';
 
 // Beneficiary
 import BeneficiaryHome from './pages/beneficiary/Home';
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     Component: Register,
+  },
+  {
+    path: '/register/help',
+    Component: BeneficiaryRegistrationHelp,
   },
   // Beneficiary routes
   {
