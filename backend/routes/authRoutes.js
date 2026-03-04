@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
     const {
         name, email, password, phone, role,
-        cardNumber, familyMembers,
+        cardNumber, rationCardImage, familyMembers,
         address, latitude, longitude,
         shopName, shopAddress, shopImage,
         shopLat, shopLng
@@ -64,6 +64,7 @@ router.post('/register', async (req, res) => {
             phone,
             role,
             cardNumber: cardNumber || undefined,
+            rationCardImage: rationCardImage || undefined,
             familyMembers: familyMembers || undefined,
             address: address || undefined,
             location: (latitude && longitude) ? { lat: latitude, lng: longitude } : undefined,

@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   role: UserRole;
   cardNumber?: string; // For beneficiaries (ration card)
+  rationCardImage?: string; // For beneficiaries
   familyMembers?: number; // For beneficiaries
   address?: string; // For beneficiaries
   location?: { lat: number; lng: number }; // Map-pinned location

@@ -21,6 +21,7 @@ export default function Register() {
     phone: '',
     password: '',
     cardNumber: '',
+    rationCardImage: '',
     familyMembers: '4',
     address: '',
     latitude: 0,
@@ -40,6 +41,21 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, shopAddress: address, shopLat: lat, shopLng: lng }));
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'rationCardImage' | 'shopImage') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, [fieldName]: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -53,6 +69,7 @@ export default function Register() {
           password: formData.password,
           role: 'beneficiary',
           cardNumber: formData.cardNumber,
+          rationCardImage: formData.rationCardImage,
           familyMembers: parseInt(formData.familyMembers),
           address: formData.address,
           latitude: formData.latitude,
@@ -186,6 +203,28 @@ export default function Register() {
                       onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rationCardImage">Ration Card Verification Image (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="rationCardImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'rationCardImage')}
+                        className="cursor-pointer file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                    </div>
+                    {formData.rationCardImage && (
+                      <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
+                        <Upload className="h-4 w-4" /> Image attached successfully
+                      </p>
+                    )}
+                    <p className="text-xs text-blue-600 mt-1">
+                      <a href="https://epds.telangana.gov.in/FoodSecurityAct/?wicket:bookmarkablePage=:nic.fsc.foodsecurity.FscSearch" target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                        <Info className="h-3 w-3" /> Upload a screenshot of this site for verifying if the given ration card exists or not.
+                      </a>
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="familyMembers">Family Members *</Label>

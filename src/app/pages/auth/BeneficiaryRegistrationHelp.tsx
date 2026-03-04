@@ -42,6 +42,7 @@ export default function BeneficiaryRegistrationHelp() {
                                     <li>Full Name & Valid Email</li>
                                     <li>10-digit Phone Number</li>
                                     <li>Valid Ration Card Number</li>
+                                    <li>Ration Card Verification Screenshot</li>
                                     <li>Number of Family Members</li>
                                     <li>Current Address & Location Pin</li>
                                 </ul>
@@ -129,6 +130,30 @@ export default function BeneficiaryRegistrationHelp() {
                                 <div className="flex-shrink-0 mr-4">
                                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold border-2 border-blue-600">
                                         4
+                                    </div>
+                                </div>
+                                <div className="w-full">
+                                    <h3 className="text-lg font-semibold text-gray-900">Provide Ration Verification Screenshot (Beneficiaries)</h3>
+                                    <p className="mt-1 text-gray-600 mb-4">To verify your ration card, beneficiaries need to upload a screenshot from the official <a href="https://epds.telangana.gov.in/FoodSecurityAct/?wicket:bookmarkablePage=:nic.fsc.foodsecurity.FscSearch" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Telangana EPDS portal <Info className="h-3 w-3" /></a> proving their ration card exists in the system.</p>
+
+                                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                        <p className="text-sm font-medium text-gray-700 mb-2">Example of an acceptable screenshot:</p>
+                                        <img
+                                            src="/ration-card-example.png"
+                                            alt="Example Ration Card Search Result"
+                                            className="w-full max-w-2xl rounded shadow-md border border-gray-300"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Make sure the "RATION CARD DETAILS" and "RATION CARD MEMBER DETAILS" sections are clearly visible.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex">
+                                <div className="flex-shrink-0 mr-4">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold border-2 border-blue-600">
+                                        5
                                     </div>
                                 </div>
                                 <div>

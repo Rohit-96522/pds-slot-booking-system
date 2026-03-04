@@ -31,6 +31,9 @@ const userSchema = mongoose.Schema({
     cardNumber: {
         type: String,
     },
+    rationCardImage: {
+        type: String,
+    },
     familyMembers: {
         type: Number,
     },
