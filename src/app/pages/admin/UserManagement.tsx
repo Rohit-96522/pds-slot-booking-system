@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Trash2, Edit, Loader2 } from 'lucide-react';
+import { Users, Trash2, Edit, Loader2, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Badge } from '../../components/ui/badge';
 import { userService } from '../../../api/user.service';
 import { Navbar } from '../../components/shared/Navbar';
@@ -14,6 +15,7 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -153,6 +155,16 @@ export default function UserManagement() {
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
+                                  {user.role === 'beneficiary' && user.rationCardImage && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      title="View Ration Card Screenshot"
+                                      onClick={() => setViewingImage({ url: user.rationCardImage!, name: user.name })}
+                                    >
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                    </Button>
+                                  )}
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -184,6 +196,23 @@ export default function UserManagement() {
           </div>
         </main>
       </div>
+
+      <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Verification Document - {viewingImage?.name}</DialogTitle>
+          </DialogHeader>
+          {viewingImage?.url && (
+            <div className="mt-4 flex justify-center bg-gray-50 border border-gray-200 rounded-lg p-2">
+              <img
+                src={viewingImage.url}
+                alt="Ration Card Verification"
+                className="max-w-full max-h-[70vh] object-contain rounded"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

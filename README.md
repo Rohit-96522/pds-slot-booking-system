@@ -4,6 +4,31 @@ A comprehensive web application for managing ration distribution through fair pr
 
 ## Features
 
+### 🧠 System Roles Mindmap
+L
+```mermaid
+mindmap
+  root((PDS System))
+    Admin
+      Dashboard & Statistics
+      Approve/Reject Shops
+      Stock Allocation
+      User Management
+      Generate Reports
+    Shopkeeper
+      Shop Approval Status
+      Create/Manage Slots
+      Set Stock Limits
+      Track Stock Levels
+      Verify Bookings (QR)
+    Beneficiary
+      Browse Approved Shops
+      View Stock Availability
+      Book Slots
+      View Ration Entitlement
+      Track Booking History
+```
+
 ### 🔐 Three User Roles
 
 1. **Admin** - System administrator

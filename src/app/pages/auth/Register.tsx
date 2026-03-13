@@ -205,7 +205,7 @@ export default function Register() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="rationCardImage">Ration Card Verification Image (Optional)</Label>
+                    <Label htmlFor="rationCardImage">Ration Card Verification Image </Label>
                     <div className="flex gap-2">
                       <Input
                         id="rationCardImage"
