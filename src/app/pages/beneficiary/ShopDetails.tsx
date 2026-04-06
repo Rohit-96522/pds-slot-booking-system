@@ -75,10 +75,20 @@ export default function ShopDetails() {
           <CardContent className="p-6">
             <h1 className="text-2xl font-semibold text-gray-900 mb-4">{shop.name}</h1>
             <div className="space-y-3">
-              <div className="flex items-start gap-2 text-gray-600">
+              <button
+                onClick={() => {
+                  if (shop.location?.lat && shop.location?.lng) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${shop.location.lat},${shop.location.lng}`, '_blank');
+                  } else {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`, '_blank');
+                  }
+                }}
+                className="flex items-start gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors text-left"
+                title="Get directions to this shop"
+              >
                 <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
                 <span>{shop.address}</span>
-              </div>
+              </button>
               <div className="flex items-center gap-2 text-gray-600">
                 <Package className="h-5 w-5 flex-shrink-0" />
                 <span>Total Stock Available: {shop.totalStock || 0} kg</span>

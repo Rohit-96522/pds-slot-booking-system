@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Calendar, Clock, Package, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Package, CheckCircle, Loader2, MapPin } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
@@ -104,6 +104,14 @@ export default function BookSlot() {
     }
   };
 
+  const handleGetDirections = () => {
+    if (shop.location?.lat && shop.location?.lng) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${shop.location.lat},${shop.location.lng}`, '_blank');
+    } else {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.address)}`, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -114,7 +122,15 @@ export default function BookSlot() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Book Your Slot</h1>
-          <p className="text-gray-600">{shop.name}</p>
+          <p className="text-gray-900 font-medium text-lg">{shop.name}</p>
+          <button
+            onClick={handleGetDirections}
+            className="mt-2 flex items-start gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors text-left"
+            title="Get directions to this shop"
+          >
+            <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <span>{shop.address}</span>
+          </button>
         </div>
 
         {/* Progress Steps */}
