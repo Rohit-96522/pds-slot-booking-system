@@ -66,15 +66,15 @@ Use these credentials to test different user roles:
 ```
 Admin:
 Email: admin@pds.gov.in
-Password: (any)
+Password: admin123
 
 Shopkeeper:
-Email: rajesh@shop.com
-Password: (any)
+Email: ram@gmail.com
+Password: 12345678
 
 Beneficiary:
-Email: priya@example.com
-Password: (any)
+Email: ponnanarohit507@gmail.com
+Password: 12345678
 ```
 
 ## User Flows
