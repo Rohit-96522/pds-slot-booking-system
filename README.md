@@ -7,7 +7,8 @@ The PDS Slot Booking System is a comprehensive web application designed to strea
 ## Features
 
 ### 🧠 System Roles Mindmap
-L
+
+
 ```mermaid
 mindmap
   root((PDS System))
@@ -323,12 +324,17 @@ Shopkeeper registrations require admin approval before the shop becomes active.
 
 3. **Verification**: Shopkeepers scan QR codes to verify bookings and dispense rations
 
+## Known Limitations
+
+- **Hardware Integration**: The QR scanning feature displays a placeholder or mock integration; actual device camera usage requires HTTPS and specific permissions.
+- **Demo Constraints**: Password validation is currently simplified for demonstration purposes.
+- **Background Processes**: Automatic cleanup of expired slots or real-time state synchronization with central supply databases is currently manual or mocked.
+- **Scale**: Handling massive concurrent flash-bookings during early morning slot openings has not yet been optimized with high-throughput message queues.
+
 ## Notes
 
-- Password validation is simplified for demo purposes
-- QR scanning shows a placeholder (actual camera integration would require additional permissions)
-- All data resets when localStorage is cleared
-- Stock calculations are based on standard PDS allocations per family member
+- All data resets when localStorage is cleared (if running the frontend in pure demo mode without the backend).
+- Stock calculations are based on standard PDS allocations per family member.
 
 ## Future Enhancements
 - 📱 **Mobile App Version**: Build dedicated Android and iOS applications for even broader accessibility.
