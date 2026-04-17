@@ -21,4 +21,9 @@ export const bookingService = {
         const response = await client.post<Booking>('/bookings', bookingData);
         return response.data;
     },
+
+    verifyBooking: async (qrCode: string) => {
+        const response = await client.post<{ success: boolean, message: string, booking: Booking }>('/bookings/verify', { qrCode });
+        return response.data;
+    },
 };

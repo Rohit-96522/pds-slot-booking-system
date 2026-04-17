@@ -76,13 +76,14 @@ export default function VerifyBooking() {
         toast.error('Could not determine your shop');
         return;
       }
-      const allBookings = await bookingService.getBookingsByShop(sid);
-      const booking = allBookings.find(
-        (b) => b._id === code || b.id === code || b.qrCode === code
-      );
-      setVerificationResult(booking ? { success: true, booking } : { success: false, booking: null });
-    } catch (e) {
+      
+      const response = await bookingService.verifyBooking(code);
+      setVerificationResult({ success: true, booking: response.booking });
+      toast.success(response.message || 'Verification successful!');
+      
+    } catch (e: any) {
       setVerificationResult({ success: false, booking: null });
+      toast.error(e.response?.data?.message || 'Failed to verify booking');
     } finally {
       setVerifying(false);
     }
