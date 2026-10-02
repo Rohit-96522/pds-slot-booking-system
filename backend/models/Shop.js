@@ -26,6 +26,12 @@ const shopSchema = mongoose.Schema({
         type: Number,
         default: 0,
     },
+    inventory: {
+        rice: { type: Number, default: 0 },
+        wheat: { type: Number, default: 0 },
+        sugar: { type: Number, default: 0 },
+        kerosene: { type: Number, default: 0 },
+    },
     location: {
         lat: Number,
         lng: Number,

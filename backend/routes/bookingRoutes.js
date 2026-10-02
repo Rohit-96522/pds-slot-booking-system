@@ -127,9 +127,14 @@ router.post('/verify', async (req, res) => {
         if (shop && shop.totalStock !== undefined) {
              // Example deduction adapting to your Shop schema 
              // (Assuming totalStock is a single metric. If it needs to be an object, Shop schema would need updating)
-             const totalItems = (amountToDeduct.rice || 0) + (amountToDeduct.wheat || 0) + (amountToDeduct.sugar || 0);
+             const totalItems = (amountToDeduct.rice || 0) + (amountToDeduct.wheat || 0) + (amountToDeduct.sugar || 0) + (amountToDeduct.kerosene || 0);
              if (shop.totalStock >= totalItems) {
                  shop.totalStock -= totalItems;
+                 if (!shop.inventory) shop.inventory = { rice: 0, wheat: 0, sugar: 0, kerosene: 0 };
+                 shop.inventory.rice = Math.max(0, (shop.inventory.rice || 0) - (amountToDeduct.rice || 0));
+                 shop.inventory.wheat = Math.max(0, (shop.inventory.wheat || 0) - (amountToDeduct.wheat || 0));
+                 shop.inventory.sugar = Math.max(0, (shop.inventory.sugar || 0) - (amountToDeduct.sugar || 0));
+                 shop.inventory.kerosene = Math.max(0, (shop.inventory.kerosene || 0) - (amountToDeduct.kerosene || 0));
                  await shop.save({ session });
              }
         }

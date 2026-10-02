@@ -81,7 +81,13 @@ router.put('/:id', async (req, res) => {
             shop.address = req.body.address || shop.address;
             shop.image = req.body.image || shop.image;
             shop.status = req.body.status || shop.status;
-            shop.totalStock = req.body.totalStock || shop.totalStock;
+            
+            if (req.body.totalStock !== undefined) {
+                shop.totalStock = req.body.totalStock;
+            }
+            if (req.body.inventory) {
+                shop.inventory = req.body.inventory;
+            }
 
             const updatedShop = await shop.save();
             res.json(updatedShop);

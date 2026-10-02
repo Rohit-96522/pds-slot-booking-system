@@ -89,6 +89,7 @@ router.post('/register', async (req, res) => {
                 shopkeeperId: user._id.toString(),
                 status: 'pending',
                 totalStock: 0,
+                inventory: { rice: 0, wheat: 0, sugar: 0, kerosene: 0 },
                 location: (shopLat && shopLng) ? { lat: shopLat, lng: shopLng } : { lat: 28.6139, lng: 77.209 },
             });
 

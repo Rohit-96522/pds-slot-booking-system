@@ -10,7 +10,7 @@ import { shopService } from '../../../api/shop.service';
 import { Navbar } from '../../components/shared/Navbar';
 import { Sidebar } from '../../components/shared/Sidebar';
 import { toast } from 'sonner';
-import { Shop } from '../../types';
+import { Shop, Stock } from '../../types';
 
 export default function StockManagement() {
   const [shops, setShops] = useState<Shop[]>([]);
@@ -18,6 +18,7 @@ export default function StockManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedShopId, setSelectedShopId] = useState('');
   const [stockAmount, setStockAmount] = useState('');
+  const [category, setCategory] = useState<keyof Stock>('rice');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,14 +41,35 @@ export default function StockManagement() {
 
     setSubmitting(true);
     try {
-      const newStock = (shop.totalStock || 0) + parseInt(stockAmount);
-      await shopService.updateShop(selectedShopId, { totalStock: newStock });
+      // Convert quintals to kg (1 quintal = 100 kg), but keep Kerosene in Liters (1:1)
+      const amountToAdd = category === 'kerosene' 
+        ? Math.round(parseFloat(stockAmount)) 
+        : Math.round(parseFloat(stockAmount) * 100);
+        
+      const currentInventory = shop.inventory || { rice: 0, wheat: 0, sugar: 0, kerosene: 0 };
+      const newInventory = {
+        ...currentInventory,
+        [category]: (currentInventory[category] || 0) + amountToAdd
+      };
+      
+      const newTotalStock = newInventory.rice + newInventory.wheat + newInventory.sugar + newInventory.kerosene;
+
+      await shopService.updateShop(selectedShopId, { 
+        totalStock: newTotalStock,
+        inventory: newInventory
+      });
+      
       setShops((prev) =>
-        prev.map((s) => ((s._id || s.id) === selectedShopId ? { ...s, totalStock: newStock } : s))
+        prev.map((s) => ((s._id || s.id) === selectedShopId ? { ...s, totalStock: newTotalStock, inventory: newInventory } : s))
       );
-      toast.success(`Added ${stockAmount} kg to ${shop.name}`);
+      
+      const unitName = category === 'kerosene' ? 'Liter(s)' : 'quintal(s)';
+      const baseUnit = category === 'kerosene' ? 'L' : 'kg';
+      toast.success(`Added ${stockAmount} ${unitName} (${amountToAdd} ${baseUnit}) of ${category} to ${shop.name}`);
+      
       setDialogOpen(false);
       setStockAmount('');
+      setCategory('rice');
       setSelectedShopId('');
     } catch (error) {
       toast.error('Failed to update stock');
@@ -111,14 +133,29 @@ export default function StockManagement() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="amount">Stock Amount (kg)</Label>
+                      <Label>Category</Label>
+                      <Select value={category} onValueChange={(val) => setCategory(val as keyof Stock)} required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="rice">Rice</SelectItem>
+                          <SelectItem value="wheat">Wheat</SelectItem>
+                          <SelectItem value="sugar">Sugar</SelectItem>
+                          <SelectItem value="kerosene">Kerosene</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Stock Amount ({category === 'kerosene' ? 'Liters' : 'Quintals'})</Label>
                       <Input
                         id="amount"
                         type="number"
                         min="1"
+                        step={category === 'kerosene' ? '1' : '0.1'}
                         value={stockAmount}
                         onChange={(e) => setStockAmount(e.target.value)}
-                        placeholder="Enter stock amount"
+                        placeholder={`Enter stock in ${category === 'kerosene' ? 'liters' : 'quintals'}`}
                         required
                       />
                     </div>
@@ -152,9 +189,27 @@ export default function StockManagement() {
                           <div>
                             <p className="text-sm text-gray-600 mb-1">Total Stock</p>
                             <p className="text-3xl font-semibold text-gray-900">
-                              {shop.totalStock || 0}
-                              <span className="text-base text-gray-600 ml-1">kg</span>
+                              {((shop.totalStock || 0) / 100).toFixed(1)}
+                              <span className="text-base text-gray-600 ml-1">Quintals</span>
                             </p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
+                            <div className="flex justify-between border-b pb-1">
+                              <span className="text-gray-600">Rice</span>
+                              <span className="font-medium">{((shop.inventory?.rice || 0) / 100).toFixed(1)} qtl</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-1">
+                              <span className="text-gray-600">Wheat</span>
+                              <span className="font-medium">{((shop.inventory?.wheat || 0) / 100).toFixed(1)} qtl</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-1">
+                              <span className="text-gray-600">Sugar</span>
+                              <span className="font-medium">{((shop.inventory?.sugar || 0) / 100).toFixed(1)} qtl</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-1">
+                              <span className="text-gray-600">Kerosene</span>
+                              <span className="font-medium">{shop.inventory?.kerosene || 0} L</span>
+                            </div>
                           </div>
                           <div className="pt-4 border-t">
                             <p className="text-xs text-gray-600 mb-2">Address</p>

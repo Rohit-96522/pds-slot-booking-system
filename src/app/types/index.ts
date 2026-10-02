@@ -25,6 +25,7 @@ export interface Shop {
   shopkeeperId: string;
   status: 'pending' | 'approved' | 'rejected';
   totalStock: number;
+  inventory?: Stock;
   location?: {
     lat: number;
     lng: number;
